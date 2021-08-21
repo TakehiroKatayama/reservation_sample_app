@@ -8,14 +8,18 @@ class ReservationsController < ApplicationController
   end
 
   def create
-    Reservation.create!(reservation_params)
-    # フォームに入力した予約に紐づくショップのキャパシティを呼び出す - フォームに入力した予約の人数
-    @shop = @reservations.shop.capacity - params[:count_person]
-    # キャパシティがマイナスになる場合はエラー
+    @reservation = Reservation.create!(reservation_params)
+    # フォームに入力した予約テーブルに紐づく、ショップテーブルのカラム：キャパシティの値を呼び出す - フォームに入力した予約の人数
+    @shop = @reservation.shop.capacity - reservation_params[:count_person].to_i
     # キャパシティーが0以上ならtrue
-    # 変更されたshopのcapacityを保存
-    @shop.save
-    redirect_to action: :index
+    if @shop >= 0
+      # 変更されたshopのcapacityの値を更新
+      @reservation.shop.update(capacity: @shop)
+      redirect_to shops_index_path
+    else
+      # キャパシティがマイナスになる場合はfalse
+      redirect_to action: :index
+    end
   end
 
   private
